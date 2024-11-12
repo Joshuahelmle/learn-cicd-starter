@@ -37,12 +37,14 @@ jobs:
             echo "No tag found on latest commit" >&2
             exit 1
           fi
-          echo "Latest Tag: $TAG" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       - name: Create Git Tag
         run: |
           git tag -a v${{ env.TAG }} -m "release ${{ env.TAG }}"
           git push origin ${{ env.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to GCP
         run: |
