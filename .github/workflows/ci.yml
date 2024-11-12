@@ -46,3 +46,19 @@ jobs:
 
       - name: Staticcheck
         uses: dominikh/staticcheck-action@v1.3.1
+
+  tags:
+    name: Check tags
+    runs-on: ubuntu-latest
+    steps:
+      - name: check out code
+        uses: actions/checkout@v4
+
+      - name: Check if commit is tagged
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+
+          if ! git describe --exact-match --tags $COMMIT_HASH; then
+            echo "Commit is not tagged"
+            exit 1
+          fi
