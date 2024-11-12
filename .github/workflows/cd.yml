@@ -28,12 +28,12 @@ jobs:
           service_account_key: ${{ secrets.GCP_CREDENTIALS }}
           project_id: ${{ env.GCP_PROJECT_ID }}
     
-     - name: Get latest Tag
+      - name: Get latest Tag
        run: |
         TAG=$(git describe --tags --abbrev=0)
         echo "Latest Tag: $TAG" >> $GITHUB_ENV
       
-      - name: deploy
+      - name: Deploy to GCP
         run: |
          gcloud builds submit \
          --tag us-central1-docker.pkg.dev/notely-441511/notely-ar-repo/notely:${{ env.TAG}} \
