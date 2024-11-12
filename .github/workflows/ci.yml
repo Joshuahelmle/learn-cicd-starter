@@ -53,6 +53,11 @@ jobs:
     steps:
       - name: check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 #fetch tags
+
+      - name: fetch all tags
+        run: git fetch --tags
 
       - name: Check if commit is tagged
         run: |
