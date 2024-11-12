@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 #fetch tags
 
       - name: setup go
         uses: actions/setup-go@v5
@@ -30,8 +32,17 @@ jobs:
 
       - name: Get latest Tag
         run: |
-          TAG=$(git describe --tags --abbrev=0)
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+          if [ -z "$TAG" ]; then
+            echo "No tag found on latest commit" >&2
+            exit 1
+          fi
           echo "Latest Tag: $TAG" >> $GITHUB_ENV
+
+      - name: Create Git Tag
+        run: |
+          git tag -a v${{ env.TAG }} -m "release ${{ env.TAG }}"
+          git push origin ${{ env.TAG }}
 
       - name: Deploy to GCP
         run: |
