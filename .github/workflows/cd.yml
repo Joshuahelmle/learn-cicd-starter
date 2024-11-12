@@ -13,6 +13,11 @@ jobs:
     steps:
       - name: check out code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 #fetch tags
+
+      -name: Fetch all tags
+        run: git fetch --tags
 
       - name: setup go
         uses: actions/setup-go@v5
@@ -21,3 +26,31 @@ jobs:
 
       - name: build
         run: ./scripts/buildprod.sh
+
+      - name: setup GCLOUD
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Get latest Tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+          if [ -z "$TAG" ]; then
+            echo "No tag found on latest commit" >&2
+            exit 1
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Create Git Tag
+        run: |
+          git tag -a v${{ env.TAG }} -m "release ${{ env.TAG }}"
+          git push origin ${{ env.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to GCP
+        run: |
+          gcloud builds submit \
+          --tag us-central1-docker.pkg.dev/notely-441511/notely-ar-repo/notely:${{ env.TAG }} \
+          --tag us-central1-docker.pkg.dev/notely-441511/notely-ar-repo/notely:latest .
